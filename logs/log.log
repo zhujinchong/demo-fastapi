@@ -1,0 +1,5 @@
+2024-12-30 14:14:56.501 | a485a668-9dd1-4177-97da-52d2385453d6 |   INFO   | process [5228]:18196 | __main__:request_middleware:51 - GET http://localhost:8000/docs
+2024-12-30 14:14:56.631 | 4d15adbe-ecd2-4fbd-a53a-16682decf9df |   INFO   | process [5228]:18196 | __main__:request_middleware:51 - GET http://localhost:8000/openapi.json
+2024-12-30 14:15:00.913 | 145272a5-e8e5-4690-8973-be305c649493 |   INFO   | process [5228]:18196 | __main__:request_middleware:51 - GET http://localhost:8000/ai/test
+2024-12-30 14:15:01.951 | 6805a2c2-08aa-45a4-9bc6-7c1b00d0eb42 |   INFO   | process [5228]:18196 | __main__:request_middleware:51 - GET http://localhost:8000/ai/test
+2024-12-30 14:15:02.734 | fa1c3e58-8fc0-48df-a6f9-7eb9e927bf71 |   INFO   | process [5228]:18196 | __main__:request_middleware:51 - GET http://localhost:8000/ai/test
