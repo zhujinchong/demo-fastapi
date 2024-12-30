@@ -26,6 +26,8 @@ uvicorn app.main:app --host='0.0.0.0' --port=8000 --workers=1
 
 # Docker运行
 
+Dockerfile 参考 https://blog.csdn.net/2201_75632987/article/details/142000817
+
 ```shell
 # 构建镜像
 docker build -t myapp .
