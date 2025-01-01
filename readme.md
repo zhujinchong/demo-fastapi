@@ -5,7 +5,7 @@
 1. 安装环境
 
 ```shell
-pip install fastapi uvicorn loguru pydantic
+pip install fastapi uvicorn loguru pydantic requests
 # 或
 poetry install --without dev
 ```

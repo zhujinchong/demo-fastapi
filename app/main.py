@@ -14,8 +14,6 @@ from pathlib import Path
 # 添加项目到Python解释器的系统路径中
 sys.path.insert(0, str(Path(__file__).parent.parent.absolute()))
 
-import uuid
-
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -25,7 +23,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app import settings
 from app.api import api_test
-from app.utils.utils_log import setup_logging
+from app.utils.utils_log import setup_logging, TraceID
 
 # 创建FastAPI应用实例
 app = FastAPI(on_startup=[setup_logging])
@@ -44,18 +42,23 @@ def register_middleware(app: FastAPI):
     # 自定义中间件（日志中记录UUID, 记录错误日志）
     @app.middleware("http")
     async def request_middleware(request: Request, call_next):
-        """记录错误日志"""
-        # 为当前请求生成一个唯一的 UUID 作为 request_id
-        with logger.contextualize(request_id=str(uuid.uuid4())):
-            try:
-                logger.info(f"{request.method} {request.url}")
-                response = await call_next(request)
-                return response
-            except Exception as ex:
-                logger.exception(ex)  # 这个方法能记录错误栈
-                return JSONResponse(content={"success": False}, status_code=500)
-            finally:
-                pass
+        """
+        1.设置日志的全链路追踪
+        2.记录错误日志
+        """
+        try:
+            REQUEST_ID_KEY = "X-Request-Id"
+            _req_id_val = request.headers.get(REQUEST_ID_KEY, "")
+            req_id = TraceID.set(_req_id_val)
+            logger.info(f"{request.method} {request.url}")
+            response = await call_next(request)
+            response.headers[REQUEST_ID_KEY] = req_id.get()
+            return response
+        except Exception as ex:
+            logger.exception(ex)  # 这个方法能记录错误栈
+            return JSONResponse(content={"success": False}, status_code=500)
+        finally:
+            pass
 
     # Gzip压缩，当传输数据量过大时，启动Gzip压缩，提高效率，不影响前端。
     app.add_middleware(
@@ -70,7 +73,8 @@ def register_middleware(app: FastAPI):
         allow_origins=["*"],  # 允许跨域的源列表，例如 ["http://www.example.org"] 等等，["*"] 表示允许任何源
         allow_credentials=False,  # 是否允许携带凭证（例如，使用 HTTP 认证、Cookie 等）
         allow_methods=["*"],  # 允许跨域请求的 HTTP 方法列表，默认是 ["GET"]
-        allow_headers=["*"],  # 允许跨域请求的 HTTP 请求头列表，默认是 []，可以使用 ["*"] 表示允许所有的请求头。当然 Accept、Accept-Language、Content-Language 以及 Content-Type 总之被允许的
+        allow_headers=["*"],
+        # 允许跨域请求的 HTTP 请求头列表，默认是 []，可以使用 ["*"] 表示允许所有的请求头。当然 Accept、Accept-Language、Content-Language 以及 Content-Type 总之被允许的
         # expose_headers=["*"],  # 可以被浏览器访问的响应头, 默认是 []，一般很少指定
         # max_age=1000  # 设定浏览器缓存 CORS 响应的最长时间，单位是秒。默认为 600，一般也很少指定
     )
